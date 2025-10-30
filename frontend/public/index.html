@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DentalSales 🦷</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      text-align: center;
+      margin-top: 5%;
+    }
+
+    h1 {
+      color: #0077b6;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #0077b6;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #023e8a;
+    }
+
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      text-align: left;
+      display: inline-block;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>DentalSales 🦷</h1>
+
+  <button onclick="getSales()">Ver Ventas</button>
+  <button onclick="addSale()">Agregar Venta</button>
+  <button onclick="analytics()">Ver Analytics</button>
+
+  <div id="output"></div>
+
+  <script>
+    const baseHost = window.location.hostname;
+
+    async function getSales() {
+      try {
+        const res = await fetch(`http://${baseHost}:4000/sales`);
+        const data = await res.json();
+        document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('output').innerHTML = "Error al obtener ventas.";
+        console.error(err);
+      }
+    }
+
+    async function addSale() {
+      const dentist = prompt("Nombre del dentista:");
+      const amount = prompt("Monto de la venta:");
+      if (!dentist || !amount) return alert("Datos incompletos.");
+
+      try {
+        const res = await fetch(`http://${baseHost}:4000/sales`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dentist, amount })
+        });
+
+        const data = await res.json();
+        alert(data.message || "Venta registrada correctamente.");
+      } catch (err) {
+        alert(" Error al registrar la venta.");
+        console.error(err);
+      }
+    }
+
+    function analytics() {
+      const url = `${window.location.origin.replace(':3000', ':5000')}`;
+      window.open(url, "_blank");
+    }
+  </script>
+</body>
+</html>
+

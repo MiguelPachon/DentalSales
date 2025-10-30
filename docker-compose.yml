@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    container_name: dentalsales_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dentalsales
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - dentalsales_net
+
+  backend:
+    build: ./backend
+    container_name: dentalsales_backend_1
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    networks:
+      - dentalsales_net
+
+  frontend:
+    build: ./frontend
+    container_name: dentalsales_frontend_1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - dentalsales_net
+
+  analytics:
+    build: ./analytics
+    container_name: dentalsales_analytics_1
+    ports:
+      - "5000:5000"
+    depends_on:
+      - backend
+    networks:
+      - dentalsales_net
+
+networks:
+  dentalsales_net:
+    driver: bridge
+
+volumes:
+  db_data:
+
