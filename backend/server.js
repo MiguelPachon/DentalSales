@@ -1,19 +1,53 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
+
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-const db = new Pool({
+const dbConfig = {
   host: 'db',
   user: 'postgres',
   password: 'postgres',
   database: 'dentalsales',
   port: 5432
-});
+};
 
-app.get('/', (req, res) => res.send(' API DentalSales lista'));
+const db = new Pool(dbConfig);
+
+async function connectWithRetry(retries = 10, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await db.query('SELECT 1');
+      console.log('Conexión a PostgreSQL exitosa');
+      return true;
+    } catch (err) {
+      console.log(`Esperando conexión a la base de datos... (${i + 1}/${retries})`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  console.error('No se pudo conectar a la base de datos después de varios intentos');
+  process.exit(1);
+}
+
+async function ensureTableExists() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS sales (
+        id SERIAL PRIMARY KEY,
+        dentist VARCHAR(100),
+        amount NUMERIC,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Tabla 'sales' verificada o creada correctamente");
+  } catch (err) {
+    console.error(" Error creando tabla:", err.message);
+  }
+}
+
+app.get('/', (req, res) => res.send('API DentalSales lista'));
 
 app.get('/sales', async (req, res) => {
   try {
@@ -34,24 +68,9 @@ app.post('/sales', async (req, res) => {
   }
 });
 
-async function ensureTableExists() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS sales (
-        id SERIAL PRIMARY KEY,
-        dentist VARCHAR(100),
-        amount NUMERIC,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log(" Tabla 'sales' verificada o creada correctamente");
-  } catch (err) {
-    console.error(" Error creando tabla:", err.message);
-  }
-}
-
-ensureTableExists();
-
-
-app.listen(4000, () => console.log('Backend en puerto 4000'));
+(async () => {
+  await connectWithRetry();
+  await ensureTableExists();
+  app.listen(4000, () => console.log('Backend en puerto 4000'));
+})();
 
