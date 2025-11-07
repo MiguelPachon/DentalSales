@@ -17,6 +17,7 @@ cd DentalSales
 
 # 3️⃣ Construir y ejecutar los contenedores
 docker compose up -d --build
+puertos = 3000, 4000, 5000
 ```
 
 ## Integrantes
