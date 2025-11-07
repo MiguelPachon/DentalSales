@@ -24,6 +24,6 @@ puertos = 3000, 4000, 5000
 - Maria Stefanie Bermudez
 - Jeryleefth Tatiana Lasso
 - Miguel Angel Pachon
-- Nicolas Francisco Tovar
-- Ivan Felipe Rodriguez
+- 
+
 
